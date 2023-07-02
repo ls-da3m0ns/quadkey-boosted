@@ -25,3 +25,14 @@ To convert QuadKeys back to geographic coordinates, the process is reversed:
 3. Divide the current tile into quadrants and determine the quadrant corresponding to the current digit.
 4. Update the tile coordinates based on the quadrant.
 5. Convert the tile coordinates back to latitude and longitude using a reverse mapping function.
+
+
+steps to getting quadkey from lat/lon 
+get mercator tile from lat/lon
+    * pixel width of 256 is to be used
+get quadkey from mercator tile
+for boundary
+    * get tile from quadkey
+    * get top and bottom lat/lon from tile
+    * create polygon from (top, bottom) coords
+things to take care of all computations to be done in c
