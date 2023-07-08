@@ -1,0 +1,13 @@
+.vscode/
+quadkey/*.c
+quadkey/*.so
+quadkey/*.h
+quadkey.egg-info/
+__pycache__/
+dist/
+.eggs/ 
+build
+parts
+sdist
+venv
+tests
