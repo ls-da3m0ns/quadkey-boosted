@@ -18,8 +18,8 @@ setup(
     url="https://github.com/ls-da3m0ns/pyquadkey-boosted",
     ext_modules=cythonize(
         [ 
-            Extension("quadkey.utils", 
-                sources=["quadkey/utils.pyx"], 
+            Extension("quadkey.core.utils", 
+                sources=["quadkey/core/utils.pyx"], 
                 language="c", optional=False, include_dirs=[get_python_inc()]) ]),
     packages=find_packages(),
     include_dirs=[get_python_inc()],
