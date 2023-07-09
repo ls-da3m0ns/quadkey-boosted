@@ -78,6 +78,91 @@ cdef str web_mercator_tile_to_quadkey(long X  ,long Y  ,int zoom ):
         quadkey += str(digit)
     return quadkey[:zoom]
 
+cdef str geo_to_quadkey(double lat, double lng, int zoom):
+    cdef long X, Y
+    X, Y = geo_to_web_mecator_tile(lat, lng, zoom)
+    return web_mercator_tile_to_quadkey(X, Y, zoom)
+
+cdef (long, long, int) quadkey_to_web_mercator_tile(str quadkey):
+    cdef long X, Y, mask
+    cdef int zoom 
+    cdef long i
+    X,Y = 0,0
+    zoom = len(quadkey)
+
+    for i in range(zoom):
+        mask = 1 << (zoom -i - 1)
+        if quadkey[i] == '1':
+            X |= mask
+        elif quadkey[i] == '2':
+            Y |= mask
+        elif quadkey[i] == '3':
+            X |= mask
+            Y |= mask
+    return X, Y, zoom
+
+cdef (double, double) web_mecator_tile_to_corner(long X ,long Y ,int zoom, int corner = 0):
+    cdef double lat, lng 
+    X = max( min(X, map_width_in_pixels(zoom)-1), 0)
+    Y = max( min(Y, map_width_in_pixels(zoom)-1), 0)
+
+    lng = (X/map_width_in_pixels(zoom) ) - 0.5
+    lat = 0.5 - (Y/map_width_in_pixels(zoom))
+
+    lng = round( 360 * lng * 1e12) / 1e12
+    lat = round( 90 - 360 * atan2( exp( -lat * 2 * pi), 1) / pi * 1e12) / 1e12
+    if corner == 0:
+        return lat, lng
+    elif corner == 1:
+        return lat, lng + 360 / map_width_in_pixels(zoom)
+    elif corner == 2:
+        return lat - 180 / map_width_in_pixels(zoom), lng
+    elif corner == 3:
+        return lat - 180 / map_width_in_pixels(zoom), lng + 360 / map_width_in_pixels(zoom)
+    else:
+        raise ValueError("corner must be 0, 1, 2, or 3")
+
+cdef ((double, double), (double, double)) web_mecator_tile_to_bbox(long X, long Y, int zoom):
+    return (web_mecator_tile_to_corner(X, Y, zoom, 0), web_mecator_tile_to_corner(X, Y, zoom, 3) )
+
+#from https://github.com/joekarl/binary-quadkey and https://github.dev/muety/pyquadkey2
+cpdef unsigned long long quadkey_to_quadint(str quadkey):
+    cdef int zoom = len(quadkey)
+    cdef int i
+    cdef unsigned long long qi = 0
+    cdef unsigned long bit_loc
+
+    for i in range(zoom):
+        bit_loc = (64 - ((i + 1) * 2))
+        qi |= int(quadkey[i]) << bit_loc
+    qi |= zoom
+    return qi
+
+cdef str quadint_to_quadkey(unsigned long long quadint):
+    cdef int zoom = quadint & 0x1F
+    cdef int i
+    cdef unsigned long long mask = 0x8000000000000000
+    cdef str quad
+    for i in range(zoom):
+        if quadint & mask:
+            quad += '1'
+        else:
+            quad += '0'
+        mask >>= 1
+    return quad
+
+cdef (double, double) quadkey_to_geo(str quadkey, int corner = 0):
+    cdef long X, Y
+    cdef int zoom
+    X, Y, zoom = quadkey_to_web_mercator_tile(quadkey)
+    return web_mecator_tile_to_corner(X, Y, zoom, corner)
+
+cdef ((double, double), (double, double)) quadkey_to_bbox(str quadkey):
+    cdef long X, Y
+    cdef int zoom
+    X, Y, zoom = quadkey_to_web_mercator_tile(quadkey)
+    return web_mecator_tile_to_bbox(X, Y, zoom)
+
 ###Python Interface###
 def verify_lat_lng_py(lat, lng):
     return verify_lat_lng(lat, lng)
@@ -117,3 +202,82 @@ def web_mercator_tile_to_quadkey_py(x, y, zoom):
         quadkey : str
     """
     return web_mercator_tile_to_quadkey(x, y, zoom)
+
+
+def quadkey_to_web_mercator_tile_py(quadkey):
+    """
+    Converts quadkey to web mercator tile
+    Args:
+        quadkey: quadkey
+    Returns:
+        (x, y, zoom) tuple of web mercator tile
+    """
+    return quadkey_to_web_mercator_tile(quadkey)
+
+def web_mecator_tile_to_corner_py(x, y, zoom, corner = 0):
+    """
+    Converts web mercator tile to corner lat, lng
+    Args:
+        x: x coordinate
+        y: y coordinate
+        zoom: zoom level
+        corner: corner number (top left = 0, top right = 1, bottom left = 2, bottom right = 3)
+    Returns:
+        (lat, lng) tuple of lat, lng
+    """
+    return web_mecator_tile_to_corner(x, y, zoom, corner)
+
+def web_mecator_tile_to_bbox_py(x, y, zoom):
+    """
+    Converts web mercator tile to bbox
+    Args:
+        x: x coordinate
+        y: y coordinate
+        zoom: zoom level
+    Returns:
+        ((lat, lng), (lat, lng)) tuple of bbox (top left, bottom right)
+    """
+    return web_mecator_tile_to_bbox(x, y, zoom)
+
+def quadkey_to_quadint_py(quadkey):
+    """
+    Converts quadkey to quadint
+    Args:
+        quadkey: quadkey
+    Returns:
+        quadint : int
+    """
+    return quadkey_to_quadint(quadkey)
+
+def quadint_to_quadkey_py(quadint):
+    """
+    Converts quadint to quadkey
+    Args:
+        quadint: quadint
+    Returns:
+        quadkey : str
+    """
+    return quadint_to_quadkey(quadint)
+
+def quadkey_to_geo_py(quadkey, corner = 0):
+    """
+    Converts quadkey to lat, lng
+    Args:
+        quadkey: quadkey
+        corner: corner number (top left = 0, top right = 1, bottom left = 2, bottom right = 3)
+    Returns:
+        (lat, lng) tuple of lat, lng
+    """ 
+    return quadkey_to_geo(quadkey, corner)
+
+def quadkey_to_bbox_py(quadkey):
+    """
+    Converts quadkey to bbox
+    Args:
+        quadkey: quadkey
+    Returns:
+        ((lat, lng), (lat, lng)) tuple of bbox (top left, bottom right)
+    
+    """
+    return quadkey_to_bbox(quadkey)
+    
