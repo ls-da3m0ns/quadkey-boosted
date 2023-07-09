@@ -1,5 +1,7 @@
 .vscode/
 quadkey/*.c
+quadkey/*/*.c
+quadkey/*/*.html
 quadkey/*.so
 quadkey/*.h
 quadkey.egg-info/
