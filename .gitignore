@@ -4,6 +4,7 @@ quadkey/*/*.c
 quadkey/*/*.html
 quadkey/*.so
 quadkey/*.h
+quadkey/core/test_*
 quadkey.egg-info/
 __pycache__/
 dist/
