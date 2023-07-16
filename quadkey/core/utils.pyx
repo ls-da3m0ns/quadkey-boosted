@@ -35,9 +35,9 @@ cdef double meters_per_pixel(double lat, int zoom):
     lat = verify_lat(lat)
     return (cos( degrees_to_radians(lat)) * EARTH_CIRCUMFERENCE) / map_width_in_pixels(zoom)
 
-cdef (long,long) geo_to_web_mecator_tile(double lat, double lng, int zoom):
+cdef (long,long) geo_to_tile(double lat, double lng, int zoom):
     cdef double lat_rad, lng_rad, Y, X, scale
-    cdef long mercat_X, mercat_Y
+    cdef long tile_X, tile_Y
 
     lat,lng = verify_lat_lng(lat, lng)
     lat_rad = degrees_to_radians(lat)
@@ -45,27 +45,27 @@ cdef (long,long) geo_to_web_mecator_tile(double lat, double lng, int zoom):
     X = ((lng/360) + 0.5) * map_width_in_pixels(zoom)
     Y = (0.5 - log ( (1 + sin(lat_rad))/(1 - sin(lat_rad)))/(4 * pi)) * map_width_in_pixels(zoom)
 
-    mercat_X, mercat_Y = long( X ), long( Y  )
+    tile_X, tile_Y = long( X ), long( Y  )
 
-    mercat_X = min(max(mercat_X, 0), map_width_in_pixels(zoom) - 1 ) # minimum mercat_X is 0 and maximum is map_width_in_pixels(zoom) - 1
-    mercat_Y = min(max(mercat_Y, 0), map_width_in_pixels(zoom) - 1 )
+    tile_X = min(max(tile_X, 0), map_width_in_pixels(zoom) - 1 ) # minimum tile_X is 0 and maximum is map_width_in_pixels(zoom) - 1
+    tile_Y = min(max(tile_Y, 0), map_width_in_pixels(zoom) - 1 )
     
-    return mercat_X, mercat_Y
+    return tile_X, tile_Y
 
-cdef (double, double) web_mecator_tile_to_geo(long mercat_X, long mercat_Y, int zoom):
+cdef (double, double) tile_to_geo(long tile_X, long tile_Y, int zoom):
     cdef double lat, lng
     cdef long map_width_in_pixels_at_zoom = map_width_in_pixels(zoom)
-    lng = max( min(mercat_X, map_width_in_pixels_at_zoom-1), 0)
-    lat = max( min(mercat_Y, map_width_in_pixels_at_zoom-1), 0)
+    lng = max( min(tile_X, map_width_in_pixels_at_zoom-1), 0)
+    lat = max( min(tile_Y, map_width_in_pixels_at_zoom-1), 0)
 
     lng = (lng/map_width_in_pixels_at_zoom ) - 0.5
     lat = 0.5 - (lat/map_width_in_pixels_at_zoom)
 
     lng = round( 360 * lng * 1e12) / 1e12
-    lat = round( 90 - 360 * atan2( exp( -lat * 2 * pi), 1) / pi * 1e12) / 1e12
+    lat = round( (90 - 360 * atan2( exp( -lat * 2 * pi), 1) / pi) * 1e12) / 1e12
     return lat, lng
 
-cdef str web_mercator_tile_to_quadkey(long X  ,long Y  ,int zoom ):
+cdef str tile_to_quadkey(long X  ,long Y  ,int zoom ):
     cdef str quadkey = ""
     cdef long mask
     for i in range(zoom, 0, -1):
@@ -80,10 +80,10 @@ cdef str web_mercator_tile_to_quadkey(long X  ,long Y  ,int zoom ):
 
 cdef str geo_to_quadkey(double lat, double lng, int zoom):
     cdef long X, Y
-    X, Y = geo_to_web_mecator_tile(lat, lng, zoom)
-    return web_mercator_tile_to_quadkey(X, Y, zoom)
+    X, Y = geo_to_tile(lat, lng, zoom)
+    return tile_to_quadkey(X, Y, zoom)
 
-cdef (long, long, int) quadkey_to_web_mercator_tile(str quadkey):
+cdef (long, long, int) quadkey_to_tile(str quadkey):
     cdef long X, Y, mask
     cdef int zoom 
     cdef long i
@@ -101,7 +101,7 @@ cdef (long, long, int) quadkey_to_web_mercator_tile(str quadkey):
             Y |= mask
     return X, Y, zoom
 
-cdef (double, double) web_mecator_tile_to_corner(long X ,long Y ,int zoom, int corner = 0):
+cdef (double, double) tile_to_corner(long X ,long Y ,int zoom, int corner = 0):
     cdef double lat, lng 
     X = max( min(X, map_width_in_pixels(zoom)-1), 0)
     Y = max( min(Y, map_width_in_pixels(zoom)-1), 0)
@@ -110,7 +110,7 @@ cdef (double, double) web_mecator_tile_to_corner(long X ,long Y ,int zoom, int c
     lat = 0.5 - (Y/map_width_in_pixels(zoom))
 
     lng = round( 360 * lng * 1e12) / 1e12
-    lat = round( 90 - 360 * atan2( exp( -lat * 2 * pi), 1) / pi * 1e12) / 1e12
+    lat = round( (90 - 360 * atan2( exp( -lat * 2 * pi), 1) / pi) * 1e12) / 1e12
     if corner == 0:
         return lat, lng
     elif corner == 1:
@@ -122,8 +122,8 @@ cdef (double, double) web_mecator_tile_to_corner(long X ,long Y ,int zoom, int c
     else:
         raise ValueError("corner must be 0, 1, 2, or 3")
 
-cdef ((double, double), (double, double)) web_mecator_tile_to_bbox(long X, long Y, int zoom):
-    return (web_mecator_tile_to_corner(X, Y, zoom, 0), web_mecator_tile_to_corner(X, Y, zoom, 3) )
+cdef ((double, double), (double, double)) tile_to_bbox(long X, long Y, int zoom):
+    return (tile_to_corner(X, Y, zoom, 0), tile_to_corner(X, Y, zoom, 3) )
 
 #from https://github.com/joekarl/binary-quadkey and https://github.dev/muety/pyquadkey2
 cpdef unsigned long long quadkey_to_quadint(str quadkey):
@@ -154,50 +154,50 @@ cdef str quadint_to_quadkey(unsigned long long quadint):
 cdef (double, double) quadkey_to_geo(str quadkey, int corner = 0):
     cdef long X, Y
     cdef int zoom
-    X, Y, zoom = quadkey_to_web_mercator_tile(quadkey)
-    return web_mecator_tile_to_corner(X, Y, zoom, corner)
+    X, Y, zoom = quadkey_to_tile(quadkey)
+    return tile_to_corner(X, Y, zoom, corner)
 
 cdef ((double, double), (double, double)) quadkey_to_bbox(str quadkey):
     cdef long X, Y
     cdef int zoom
-    X, Y, zoom = quadkey_to_web_mercator_tile(quadkey)
-    return web_mecator_tile_to_bbox(X, Y, zoom)
+    X, Y, zoom = quadkey_to_tile(quadkey)
+    return tile_to_bbox(X, Y, zoom)
 
-cdef (long, long, int) get_web_mercator_tile_parent(long X, long Y, int zoom, int parent_zoom):
+cdef (long, long, int) get_tile_parent(long X, long Y, int zoom, int parent_zoom):
     cdef long parent_X, parent_Y
     parent_X = X >> (zoom - parent_zoom)
     parent_Y = Y >> (zoom - parent_zoom)
     return parent_X, parent_Y, parent_zoom
 
-cdef int get_web_mercator_tile_childrens_2(long X, long Y, int zoom, int child_zoom):
+cdef int get_tile_childrens_2(long X, long Y, int zoom, int child_zoom):
     # cdef long child_X, child_Y
     # cdef int i
     # cdef ((double,double)[]) children = []
     # for i in range(4):
     #     child_X = X << (child_zoom - zoom) + (i % 2)
     #     child_Y = Y << (child_zoom - zoom) + (i // 2)
-    #     children.append(web_mecator_tile_to_corner(child_X, child_Y, child_zoom, 0))
+    #     children.append(tile_to_corner(child_X, child_Y, child_zoom, 0))
     return 1
 
 ###Python Interface###
 def verify_lat_lng_py(lat, lng):
     return verify_lat_lng(lat, lng)
 
-def geo_to_web_mecator_tile_py(lat, lng, zoom):
+def geo_to_tile_py(lat, lng, zoom):
     """
-    Converts lat, lng to web mercator tile
+    Converts lat, lng to web tileor tile
     Args:
         lat: latitude
         lng: longitude
         zoom: zoom level
     Returns:
-        (x, y) tuple of web mercator tile
+        (x, y) tuple of web tileor tile
     """
-    return geo_to_web_mecator_tile(lat, lng, zoom)
+    return geo_to_tile(lat, lng, zoom)
 
-def web_mecator_tile_to_geo_py(x, y, zoom):
+def tile_to_geo_py(x, y, zoom):
     """
-    Converts web mercator tile to lat, lng
+    Converts web tileor tile to lat, lng
     Args:
         x: x coordinate
         y: y coordinate
@@ -205,11 +205,11 @@ def web_mecator_tile_to_geo_py(x, y, zoom):
     Returns:
         (lat, lng) tuple of lat, lng
     """
-    return web_mecator_tile_to_geo(x, y, zoom)
+    return tile_to_geo(x, y, zoom)
 
-def web_mercator_tile_to_quadkey_py(x, y, zoom):
+def tile_to_quadkey_py(x, y, zoom):
     """
-    Converts web mercator tile to quadkey
+    Converts web tileor tile to quadkey
     Args:
         x: x coordinate
         y: y coordinate
@@ -217,22 +217,22 @@ def web_mercator_tile_to_quadkey_py(x, y, zoom):
     Returns:
         quadkey : str
     """
-    return web_mercator_tile_to_quadkey(x, y, zoom)
+    return tile_to_quadkey(x, y, zoom)
 
 
-def quadkey_to_web_mercator_tile_py(quadkey):
+def quadkey_to_tile_py(quadkey):
     """
-    Converts quadkey to web mercator tile
+    Converts quadkey to web tileor tile
     Args:
         quadkey: quadkey
     Returns:
-        (x, y, zoom) tuple of web mercator tile
+        (x, y, zoom) tuple of web tileor tile
     """
-    return quadkey_to_web_mercator_tile(quadkey)
+    return quadkey_to_tile(quadkey)
 
-def web_mecator_tile_to_corner_py(x, y, zoom, corner = 0):
+def tile_to_corner_py(x, y, zoom, corner = 0):
     """
-    Converts web mercator tile to corner lat, lng
+    Converts web tileor tile to corner lat, lng
     Args:
         x: x coordinate
         y: y coordinate
@@ -241,11 +241,11 @@ def web_mecator_tile_to_corner_py(x, y, zoom, corner = 0):
     Returns:
         (lat, lng) tuple of lat, lng
     """
-    return web_mecator_tile_to_corner(x, y, zoom, corner)
+    return tile_to_corner(x, y, zoom, corner)
 
-def web_mecator_tile_to_bbox_py(x, y, zoom):
+def tile_to_bbox_py(x, y, zoom):
     """
-    Converts web mercator tile to bbox
+    Converts web tileor tile to bbox
     Args:
         x: x coordinate
         y: y coordinate
@@ -253,7 +253,7 @@ def web_mecator_tile_to_bbox_py(x, y, zoom):
     Returns:
         ((lat, lng), (lat, lng)) tuple of bbox (top left, bottom right)
     """
-    return web_mecator_tile_to_bbox(x, y, zoom)
+    return tile_to_bbox(x, y, zoom)
 
 def quadkey_to_quadint_py(quadkey):
     """
@@ -297,32 +297,32 @@ def quadkey_to_bbox_py(quadkey):
     """
     return quadkey_to_bbox(quadkey)
 
-def get_web_mercator_tile_parent_py(x, y, zoom, parent_zoom=-1):
+def get_tile_parent_py(x, y, zoom, parent_zoom=-1):
     """
-    Gets parent web mercator tile
+    Gets parent web tileor tile
     Args:
         x: x coordinate
         y: y coordinate
         zoom: zoom level
         parent_zoom: parent zoom level
     Returns:
-        (x, y, zoom) tuple of web mercator tile
+        (x, y, zoom) tuple of web tileor tile
     """
     if parent_zoom == -1:
         parent_zoom = zoom - 1
-    return get_web_mercator_tile_parent(x, y, zoom, parent_zoom)
+    return get_tile_parent(x, y, zoom, parent_zoom)
 
-def get_web_mercator_tile_childrens_py(x, y, zoom, child_zoom=-1):
+def get_tile_childrens_py(x, y, zoom, child_zoom=-1):
     """
-    Gets children web mercator tiles
+    Gets children web tileor tiles
     Args:
         x: x coordinate
         y: y coordinate
         zoom: zoom level
         child_zoom: child zoom levelFc
     Returns:
-        [(x, y, zoom), (x, y, zoom), (x, y, zoom), (x, y, zoom)] list of web mercator tiles
+        [(x, y, zoom), (x, y, zoom), (x, y, zoom), (x, y, zoom)] list of web tileor tiles
     """
     if child_zoom == -1:
         child_zoom = zoom + 1
-    return get_web_mercator_tile_childrens_2(x, y, zoom, child_zoom)
+    return get_tile_childrens_2(x, y, zoom, child_zoom)

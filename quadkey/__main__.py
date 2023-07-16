@@ -1,8 +1,12 @@
-from .quadkey import lat_lng_to_quadkey
-
-def main():
-    return lat_lng_to_quadkey(37.7749, -122.4194, 12)
-
+from .quadkey import *
+import argparse
 
 if __name__ == "__main__":
-    print(main() )
+    parser = argparse.ArgumentParser(description="Tool to convert lat/lng to quadkey")
+    parser.add_argument("lat", type=float, help="latitude")
+    parser.add_argument("lng", type=float, help="longitude")
+    parser.add_argument("zoom", type=int, help="zoom level")
+    args = parser.parse_args()
+    print(
+        tile_to_quadkey_py( **geo_to_tile_py(args.lat, args.lng, args.zoom), zoom=args.zoom)
+        )
