@@ -8,5 +8,5 @@ if __name__ == "__main__":
     parser.add_argument("zoom", type=int, help="zoom level")
     args = parser.parse_args()
     print(
-        tile_to_quadkey_py( **geo_to_tile_py(args.lat, args.lng, args.zoom), zoom=args.zoom)
+        tile_to_quadkey( **geo_to_tile(args.lat, args.lng, args.zoom), zoom=args.zoom)
         )

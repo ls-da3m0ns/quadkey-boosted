@@ -195,6 +195,30 @@ def geo_to_tile_py(lat, lng, zoom):
     """
     return geo_to_tile(lat, lng, zoom)
 
+def geo_to_quadkey_py(lat, lng, zoom):
+    """
+    Converts lat, lng to quadkey
+    Args:
+        lat: latitude
+        lng: longitude
+        zoom: zoom level
+    Returns:
+        quadkey : str
+    """
+    return geo_to_quadkey(lat, lng, zoom)
+
+def geo_to_quadint_py(lat, lng, zoom):
+    """
+    Converts lat, lng to quadint
+    Args:
+        lat: latitude
+        lng: longitude
+        zoom: zoom level
+    Returns:
+        quadint : int
+    """
+    return quadkey_to_quadint(geo_to_quadkey(lat, lng, zoom))
+
 def tile_to_geo_py(x, y, zoom):
     """
     Converts web tileor tile to lat, lng
@@ -220,16 +244,6 @@ def tile_to_quadkey_py(x, y, zoom):
     return tile_to_quadkey(x, y, zoom)
 
 
-def quadkey_to_tile_py(quadkey):
-    """
-    Converts quadkey to web tileor tile
-    Args:
-        quadkey: quadkey
-    Returns:
-        (x, y, zoom) tuple of web tileor tile
-    """
-    return quadkey_to_tile(quadkey)
-
 def tile_to_corner_py(x, y, zoom, corner = 0):
     """
     Converts web tileor tile to corner lat, lng
@@ -254,6 +268,17 @@ def tile_to_bbox_py(x, y, zoom):
         ((lat, lng), (lat, lng)) tuple of bbox (top left, bottom right)
     """
     return tile_to_bbox(x, y, zoom)
+
+def quadkey_to_tile_py(quadkey):
+    """
+    Converts quadkey to web tileor tile
+    Args:
+        quadkey: quadkey
+    Returns:
+        (x, y, zoom) tuple of web tileor tile
+    """
+    return quadkey_to_tile(quadkey)
+
 
 def quadkey_to_quadint_py(quadkey):
     """
@@ -285,6 +310,27 @@ def quadkey_to_geo_py(quadkey, corner = 0):
         (lat, lng) tuple of lat, lng
     """ 
     return quadkey_to_geo(quadkey, corner)
+
+def quadint_to_geo_py(quadint, corner = 0):
+    """
+    Converts quadint to lat, lng
+    Args:
+        quadint: quadint
+        corner: corner number (top left = 0, top right = 1, bottom left = 2, bottom right = 3)
+    Returns:
+        (lat, lng) tuple of lat, lng
+    """ 
+    return quadkey_to_geo(quadint_to_quadkey(quadint), corner)
+
+def quadint_to_bbox_py(quadint):
+    """
+    Converts quadint to bbox
+    Args:
+        quadint: quadint
+    Returns:
+        ((lat, lng), (lat, lng)) tuple of bbox (top left, bottom right)
+    """
+    return quadkey_to_bbox(quadint_to_quadkey(quadint))
 
 def quadkey_to_bbox_py(quadkey):
     """
