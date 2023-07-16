@@ -11,3 +11,4 @@ tag_name = "v{version}"
 [tool.bumpver.file_patterns]
 "pyproject.toml" = ['current_version = "{version}"']
 "quadkey/__init__.py" = ['__version__ = "{version}"']
+"setup.py" = ['version="{version}"']
