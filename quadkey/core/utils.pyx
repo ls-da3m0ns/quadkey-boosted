@@ -163,6 +163,22 @@ cdef ((double, double), (double, double)) quadkey_to_bbox(str quadkey):
     X, Y, zoom = quadkey_to_web_mercator_tile(quadkey)
     return web_mecator_tile_to_bbox(X, Y, zoom)
 
+cdef (long, long, int) get_web_mercator_tile_parent(long X, long Y, int zoom, int parent_zoom):
+    cdef long parent_X, parent_Y
+    parent_X = X >> (zoom - parent_zoom)
+    parent_Y = Y >> (zoom - parent_zoom)
+    return parent_X, parent_Y, parent_zoom
+
+cdef int get_web_mercator_tile_childrens_2(long X, long Y, int zoom, int child_zoom):
+    # cdef long child_X, child_Y
+    # cdef int i
+    # cdef ((double,double)[]) children = []
+    # for i in range(4):
+    #     child_X = X << (child_zoom - zoom) + (i % 2)
+    #     child_Y = Y << (child_zoom - zoom) + (i // 2)
+    #     children.append(web_mecator_tile_to_corner(child_X, child_Y, child_zoom, 0))
+    return 1
+
 ###Python Interface###
 def verify_lat_lng_py(lat, lng):
     return verify_lat_lng(lat, lng)
@@ -280,4 +296,33 @@ def quadkey_to_bbox_py(quadkey):
     
     """
     return quadkey_to_bbox(quadkey)
-    
+
+def get_web_mercator_tile_parent_py(x, y, zoom, parent_zoom=-1):
+    """
+    Gets parent web mercator tile
+    Args:
+        x: x coordinate
+        y: y coordinate
+        zoom: zoom level
+        parent_zoom: parent zoom level
+    Returns:
+        (x, y, zoom) tuple of web mercator tile
+    """
+    if parent_zoom == -1:
+        parent_zoom = zoom - 1
+    return get_web_mercator_tile_parent(x, y, zoom, parent_zoom)
+
+def get_web_mercator_tile_childrens_py(x, y, zoom, child_zoom=-1):
+    """
+    Gets children web mercator tiles
+    Args:
+        x: x coordinate
+        y: y coordinate
+        zoom: zoom level
+        child_zoom: child zoom levelFc
+    Returns:
+        [(x, y, zoom), (x, y, zoom), (x, y, zoom), (x, y, zoom)] list of web mercator tiles
+    """
+    if child_zoom == -1:
+        child_zoom = zoom + 1
+    return get_web_mercator_tile_childrens_2(x, y, zoom, child_zoom)

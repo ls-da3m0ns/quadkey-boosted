@@ -1,4 +1,4 @@
-from .quadkey import lat_lng_to_quadkey
+from .quadkey import *
 
 __version__='0.1'
 __author__='Prashant Singh'
