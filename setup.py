@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="quadkey-boosted",
-    version="1.0.2",
+    version="1.0.3",
     author="Prashant Singh",
     author_email="mail.prashantsingh.41@gmail.com",
     description="Python library that provides a powerful set of tools and functions for working with quadkeys. Built on top of C it offers lightning-fast calculations, ensuring optimal performance even with large-scale datasets.",
