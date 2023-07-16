@@ -1,2 +1,0 @@
-[console_scripts]
-quadkey = src.quadkey.__main__:main
