@@ -13,12 +13,13 @@ from .utils import (
     quadkey_to_quadint_py as quadkey_to_quadint,
     quadkey_to_bbox_py as quadkey_to_bbox,
     quadkey_to_geo_py as quadkey_to_geo,
-
+    quadkey_to_parent_py as quadkey_to_parent,
+    
     quadint_to_geo_py as quadint_to_geo,
     quadint_to_quadkey_py as quadint_to_quadkey,
     quadint_to_bbox_py as quadint_to_bbox,
 
     get_tile_parent_py as get_tile_parent,
-    get_tile_children_py as get_tile_children,
+    get_tile_childrens_py as get_tile_children,
     
 )

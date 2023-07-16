@@ -311,6 +311,20 @@ def quadkey_to_geo_py(quadkey, corner = 0):
     """ 
     return quadkey_to_geo(quadkey, corner)
 
+def quadkey_to_parent_py(quadkey, parent_zoom=-1):
+    """
+    Gets top parent quadkey
+    Args:
+        quadkey: quadkey
+    Returns:
+        quadkey : str
+    """
+    if parent_zoom == -1:
+        parent_zoom = len(quadkey) - 1
+    elif parent_zoom > len(quadkey):
+        raise ValueError("parent_zoom must be less than or equal to len(quadkey)")
+    return quadkey[:parent_zoom]
+
 def quadint_to_geo_py(quadint, corner = 0):
     """
     Converts quadint to lat, lng
