@@ -1,10 +1,10 @@
 
-# pyquadkey-boosted
+# quadkey-boosted
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![C](https://img.shields.io/badge/c-%2300599C.svg?style=for-the-badge&logo=c&logoColor=white)
 ## Description
-pyquadkey-boosted is a high-performance Python library that provides a powerful set of tools and functions for working with quadkeys, enabling seamless integration of tile-based mapping systems into your Python applications. Built on top of a blazing-fast C implementation, pyquadkey-boosted offers lightning-fast calculations, ensuring optimal performance even with large-scale datasets.
+quadkey-boosted is a high-performance Python library that provides a powerful set of tools and functions for working with quadkeys, enabling seamless integration of tile-based mapping systems into your Python applications. Built on top of a blazing-fast C implementation, quadkey-boosted offers lightning-fast calculations, ensuring optimal performance even with large-scale datasets.
 
 ## Key Features
  * Available API's
@@ -49,7 +49,7 @@ the [Microsoft Article About this](https://docs.microsoft.com/en-us/bingmaps/art
 
 ### using pip
 ```bash
-pip install pyquadkey-boosted
+pip install quadkey-boosted
 ```
 ### From source
 #### Prerequisites (`Linux`)
@@ -65,7 +65,7 @@ pip install pyquadkey-boosted
 #### Build from source
 ```bash
 # Clone  repo
-git clone https://github.com/ls-da3m0ns/pyquadkey-boosted
+git clone https://github.com/ls-da3m0ns/quadkey-boosted
 
 # Create Virtual Environment
 python -m venv ./venv

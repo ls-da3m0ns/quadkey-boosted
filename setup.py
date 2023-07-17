@@ -16,7 +16,7 @@ setup(
     description="Python library that provides a powerful set of tools and functions for working with quadkeys. Built on top of C it offers lightning-fast calculations, ensuring optimal performance even with large-scale datasets.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ls-da3m0ns/pyquadkey-boosted",
+    url="https://github.com/ls-da3m0ns/quadkey-boosted",
     ext_modules=cythonize(
         [ 
             Extension("quadkey.core.utils", 
@@ -37,9 +37,9 @@ setup(
     ],
     python_requires='>=3.6',
     project_urls={
-        'Documentation': 'https://github.com/lsda3m0ns/pyquadkey-boosted',
-        'Source Code': 'https://github.com/lsda3m0ns/pyquadkey-boosted',
-        'Bug Tracker': 'https://github.com/lsda3m0ns/pyquadkey-boosted/issues',
+        'Documentation': 'https://github.com/ls-da3m0ns/quadkey-boosted',
+        'Source Code': 'https://github.com/ls-da3m0ns/quadkey-boosted',
+        'Bug Tracker': 'https://github.com/ls-da3m0ns/quadkey-boosted/issues',
     },
     entry_points={
         'console_scripts': [
